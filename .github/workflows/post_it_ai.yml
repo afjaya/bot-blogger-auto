@@ -1,0 +1,28 @@
+name: Auto Post Tips IT dan AI
+
+on:
+  schedule:
+    - cron: "0 13 * * *" # Jalan jam 20:00 WIB (13:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  post-it-ai:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          pip install google-genai google-api-python-client google-auth-oauthlib
+
+      - name: Jalankan Bot IT dan AI
+        env:
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+          BLOGGER_TOKEN: ${{ secrets.BLOGGER_TOKEN }}
+        run: python main_it_ai.py
