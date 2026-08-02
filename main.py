@@ -1,62 +1,72 @@
-import random
 import os
 import json
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google import genai
+from google.genai import types
 
 # ==========================================
-# 1. KONFIGURASI BOT & DAFTAR IDE RESEP
+# 1. KONFIGURASI BLOGGER
 # ==========================================
-BLOG_ID = "9018939718289832902"  # <--- Pastikan ID Blog kamu sudah benar di sini
-
-DAFTAR_RESEP = [
-    "Ayam Goreng Lengkuas Gurih Renyah",
-    "Rendang Daging Sapi Khas Padang Empuk",
-    "Soto Ayam Lamongan Kuah Gurih Kets",
-    "Bumbu Bali Telur Tahu Pedas Manis",
-    "Nasi Goreng Kampung Spesial Telur Ceplok",
-    "Tongseng Kambing Tanpa Bau Prengus",
-    "Pecel Lele Sambal Terasi Khas Lamongan",
-    "Gado-Gado Surabaya Bumbu Kacang Kental",
-    "Sate Ayam Madura Daging Empuk Bumbu Rengkuh",
-    "Sup Buntut Sapi Bening Gurih Kaya Rempah",
-    "Pepes Ikan Mas Bumbu Kuning Kemangi",
-    "Gulai Cumi Isi Tahu Telur Khas Minang",
-    "Rawon Daging Sapi Khas Jawa Timur Hitam Pekat",
-]
+BLOG_ID = "9018939718289832902"  # <--- Pastikan ID Blog kamu sudah benar
 
 # ==========================================
-# 2. GENERATE KONTEN RESEP PAKAI GEMINI AI
+# 2. GENERATE KONTEN PAKAI GEMINI (PROMPT SUPER)
 # ==========================================
-def buat_artikel_resep_gemini(topik_resep):
-    print(f"🤖 Gemini sedang membuat artikel resep: {topik_resep}...")
+def buat_artikel_resep_gemini():
+    print("🤖 Gemini sedang meracik artikel resep kreatif...")
     
-    # Mengambil API Key dari GitHub Secrets
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     
-    prompt = f"""
-    Kamu adalah seorang Chef Profesional dan Food Blogger berpengalaman di Indonesia.
-    Buatkan artikel resep masakan lengkap untuk blog dengan topik: '{topik_resep}'.
+    prompt = """
+Bertindaklah sebagai Chef Rumahan dan Food Blogger kreatif yang ramah, berpengalaman, dan pandai membagikan resep masakan serta minuman harian yang lezat dan praktis.
+ 
+TOLONG BUATKAN 1 ARTIKEL RESEP LENGKAP:
+- Jenis Resep: Pilihlah secara RANDOM 1 ide resep makanan atau minuman harian populer (bisa masakan rumahan, camilan, minuman segar, atau kreasi kekinian).
+- Target Pembaca: Ibu rumah tangga, anak kos, atau siapa saja yang suka masak praktis di rumah.
+ 
+ATURAN GAYA PENULISAN & TONE:
+1. Panggilan Diri: Gunakan "Aku" atau "Gua" secara konsisten.
+2. Panggilan Pembaca: Gunakan "Kamu" atau "Bestie" agar terasa akrab dan hangat.
+3. Gaya Bahasa: Santai, mengalir, ramah, seolah-olah sedang mengajari teman dekat di dapur.
+4. JANGAN gunakan kata-kata kaku khas AI seperti: "Di era modern ini", "Sangat krusial", "Kesimpulannya", "Mari kita bahas", atau "Mahakarya kuliner".
+ 
+ATURAN JUDUL & SEO (RAMAH GOOGLE ADSENSE):
+1. Judul Artikel: Singkat, padat, menarik, dan TO THE POINT (Maksimal 6-8 kata, contoh: "Resep Es Kopi Susu Gula Aren Praktis" atau "Cara Bikin Tumis Kangkung Terasi Enak"). Jangan buat judul yang bertele-tele.
+2. Meta Description: Buat ringkasan menarik (120-150 karakter) memuat nama resep.
+3. Nilai Tambah AdSense (High-Value Content):
+   - Jangan cuma kasih daftar bahan dan langkah! Tambahkan "Tips Rahasia / Anti-Gagal" di bagian akhir agar konten benar-benar bermanfaat unik bagi pembaca.
+   - Cantumkan estimasi waktu masak, tingkat kesulitan, dan perkiraan porsi.
+ 
+ATURAN STRUKTUR & FORMAT HTML (UNTUK BLOGSPOT):
+1. Gunakan tag HTML bersih yang siap diunggah ke Blogspot:
+   - <h2> untuk judul bagian utama (Deskripsi Singkat, Bahan-bahan, Cara Membuat, Tips Anti Gagal).
+   - <p> untuk paragraf pembuka dan cerita singkat di balik resep.
+   - <ul> dan <li> untuk daftar bahan-bahan.
+   - <ol> dan <li> untuk langkah-langkah memasak secara urut dan jelas.
+   - <blockquote> untuk poin penting atau tips rahasia.
+ 
+FORMAT OUTPUT YANG DIHARAPKAN (JSON):
+{
+ "recipe_name": "Nama Resep Singkat",
+ "title": "Judul Artikel Singkat & To The Point",
+ "meta_description": "Deskripsi singkat resep untuk SEO",
+ "content_html": "<p>Isi artikel lengkap format HTML...</p>"
+}
+"""
     
-    ATURAN FORMAT OUTPUT:
-    1. Berikan respon HANYA berupa format HTML murni (tanpa pembungkus ```html ... ```, langsung tag HTML seperti <h2>, <p>, <ul>, <ol>).
-    2. Jangan sertakan judul h1 di dalam isi HTML (karena judul dipisah).
-    3. Struktur artikel harus rapi, terdiri dari:
-       - Paragraf Pembuka yang menggugah selera dan penjelasan singkat masakan.
-       - <h3>Bahan-bahan Utama & Bumbu Halus</h3> dalam bentuk unordered list <ul>.
-       - <h3>Langkah-Langkah Memasak</h3> dalam bentuk ordered list <ol> detail.
-       - <h3>Tips Rahasia Anti Gagal</h3> dalam bentuk bullet points <ul>.
-    4. Gunakan bahasa Indonesia yang ramah, hangat, dan menggiurkan khas Food Blogger.
-    """
-    
-# Menggunakan model gemini-2.0-flash
+    # Pakai model gemini-2.0-flash dan kunci respon ke format JSON
     response = client.models.generate_content(
-        model='gemini-1.5-flash',
-        contents=prompt
+        model='gemini-2.0-flash',
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json"
+        )
     )
     
-    return response.text
+    # Parse hasil JSON dari Gemini
+    data = json.loads(response.text)
+    return data
 
 # ==========================================
 # 3. POSTING KE BLOGGER VIA API
@@ -81,7 +91,7 @@ def post_ke_blogger(judul, isi_html):
         "kind": "blogger#post",
         "title": judul,
         "content": isi_html,
-        "labels": ["Resep Masakan", "Kuliner Nusantara", "Ide Jualan"],
+        "labels": ["Resep Masakan", "Kuliner Nusantara", "Ide Jualan", "Resep Praktis"],
     }
 
     posts = service.posts()
@@ -93,12 +103,11 @@ def post_ke_blogger(judul, isi_html):
 # 4. JALANKAN PROGRAM UTAMA
 # ==========================================
 if __name__ == "__main__":
-    # Pilih resep acak dari daftar
-    resep_pilihan = random.choice(DAFTAR_RESEP)
-    judul_artikel = f"Resep {resep_pilihan} - Praktis, Lezat, dan Bikin Nagih!"
+    resep_data = buat_artikel_resep_gemini()
     
-    # Generate isi artikel dari Gemini AI
-    konten_html = buat_artikel_resep_gemini(resep_pilihan)
+    judul_artikel = resep_data["title"]
+    konten_html = resep_data["content_html"]
     
-    # Terbitkan ke Blogspot
+    print(f"📌 Judul buatan Gemini: {judul_artikel}")
+    
     post_ke_blogger(judul_artikel, konten_html)
