@@ -1,88 +1,84 @@
 import os
 import json
 import random
+import time
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google import genai
 from google.genai import types
 
-BLOG_ID = "9018939718289832902"
+BLOG_ID = "9018939718289832902"  # <--- Pastikan ID Blog kamu benar
 
 def buat_artikel_resep_gemini():
     print("🤖 Gemini sedang meracik artikel resep kreatif...")
     
-    # Ambil string kunci yang dipisah koma dari GitHub Secrets
     keys_raw = os.environ.get("GEMINI_API_KEYS", "")
-    
-    # Jika masih pakai nama secret lama GEMINI_API_KEY (single)
     if not keys_raw:
         keys_raw = os.environ.get("GEMINI_API_KEY", "")
         
     api_keys = [k.strip() for k in keys_raw.split(",") if k.strip()]
     
-    # Acak urutan API Key supaya beban terbagi merata (Load Balancing)
+    if not api_keys:
+        raise Exception("❌ API Key Gemini tidak ditemukan di Secrets!")
+
     random.shuffle(api_keys)
     
     prompt = """
 Bertindaklah sebagai Chef Rumahan dan Food Blogger kreatif yang ramah, berpengalaman, dan pandai membagikan resep masakan serta minuman harian yang lezat dan praktis.
  
 TOLONG BUATKAN 1 ARTIKEL RESEP LENGKAP:
-- Jenis Resep: Pilihlah secara RANDOM 1 ide resep makanan atau minuman harian populer (bisa masakan rumahan, camilan, minuman segar, atau kreasi kekinian).
+- Jenis Resep: Pilihlah secara RANDOM 1 ide resep makanan atau minuman harian populer.
 - Target Pembaca: Ibu rumah tangga, anak kos, atau siapa saja yang suka masak praktis di rumah.
  
 ATURAN GAYA PENULISAN & TONE:
 1. Panggilan Diri: Gunakan "Aku" atau "Gua" secara konsisten.
 2. Panggilan Pembaca: Gunakan "Kamu" atau "Bestie" agar terasa akrab dan hangat.
-3. Gaya Bahasa: Santai, mengalir, ramah, seolah-olah sedang mengajari teman dekat di dapur.
-4. JANGAN gunakan kata-kata kaku khas AI seperti: "Di era modern ini", "Sangat krusial", "Kesimpulannya", "Mari kita bahas", atau "Mahakarya kuliner".
+3. Gaya Bahasa: Santai, mengalir, ramah.
+4. JANGAN gunakan kata-kata kaku khas AI seperti: "Di era modern ini", "Sangat krusial", "Kesimpulannya".
  
-ATURAN JUDUL & SEO (RAMAH GOOGLE ADSENSE):
-1. Judul Artikel: Singkat, padat, menarik, dan TO THE POINT (Maksimal 6-8 kata, contoh: "Resep Es Kopi Susu Gula Aren Praktis" atau "Cara Bikin Tumis Kangkung Terasi Enak"). Jangan buat judul yang bertele-tele.
-2. Meta Description: Buat ringkasan menarik (120-150 karakter) memuat nama resep.
-3. Nilai Tambah AdSense (High-Value Content):
-   - Jangan cuma kasih daftar bahan dan langkah! Tambahkan "Tips Rahasia / Anti-Gagal" di bagian akhir agar konten benar-benar bermanfaat unik bagi pembaca.
-   - Cantumkan estimasi waktu masak, tingkat kesulitan, dan perkiraan porsi.
+ATURAN JUDUL & SEO:
+1. Judul Artikel: Singkat, padat, menarik (Maksimal 6-8 kata).
+2. Meta Description: Ringkasan menarik (120-150 karakter).
+3. Poin Plus: Cantumkan estimasi waktu masak, porsi, dan "Tips Rahasia Anti-Gagal".
  
-ATURAN STRUKTUR & FORMAT HTML (UNTUK BLOGSPOT):
-1. Gunakan tag HTML bersih yang siap diunggah ke Blogspot:
-   - <h2> untuk judul bagian utama (Deskripsi Singkat, Bahan-bahan, Cara Membuat, Tips Anti Gagal).
-   - <p> untuk paragraf pembuka dan cerita singkat di balik resep.
-   - <ul> dan <li> untuk daftar bahan-bahan.
-   - <ol> dan <li> untuk langkah-langkah memasak secara urut dan jelas.
-   - <blockquote> untuk poin penting atau tips rahasia.
+FORMAT HTML:
+Gunakan tag <h2>, <p>, <ul>, <ol>, <li>, <blockquote>.
  
-FORMAT OUTPUT YANG DIHARAPKAN (JSON):
+FORMAT OUTPUT (MUST BE VALID JSON):
 {
- "recipe_name": "Nama Resep Singkat",
- "title": "Judul Artikel Singkat & To The Point",
- "meta_description": "Deskripsi singkat resep untuk SEO",
- "content_html": "<p>Isi artikel lengkap format HTML...</p>"
+ "recipe_name": "Nama Resep",
+ "title": "Judul Artikel",
+ "meta_description": "Deskripsi singkat",
+ "content_html": "<p>Isi artikel format HTML...</p>"
 }
 """
 
-    # Mencoba API Key satu per satu sampai berhasil
-    for index, key in enumerate(api_keys, 1):
-        try:
-            print(f"🔑 Mencoba API Key ke-{index}...")
-            client = genai.Client(api_key=key)
-            
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',  # <-- Ubah ke model stabil terbaru
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json"
-                )
-            )
-            
-            data = json.loads(response.text)
-            print("✅ Berhasil generate konten menggunakan Gemini!")
-            return data
-            
-        except Exception as e:
-            print(f"⚠️ API Key ke-{index} gagal/limit: {e}")
-            print("🔄 Mencoba kunci cadangan berikutnya...")
+    # Daftar nama model yang akan dicoba secara berurutan
+    candidate_models = ["gemini-2.5-flash", "gemini-1.5-flash"]
 
-    raise Exception("❌ Semua API Key Gemini habis kuota / error!")
+    for index, key in enumerate(api_keys, 1):
+        for model_name in candidate_models:
+            try:
+                print(f"🔑 Mencoba API Key ke-{index} dengan model [{model_name}]...")
+                client = genai.Client(api_key=key)
+                
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json"
+                    )
+                )
+                
+                data = json.loads(response.text)
+                print(f"✅ Berhasil generate konten menggunakan model {model_name}!")
+                return data
+                
+            except Exception as e:
+                print(f"⚠️ API Key ke-{index} ({model_name}) gagal: {e}")
+                time.sleep(2) # Beri jeda 2 detik sebelum mencoba lagi
+
+    raise Exception("❌ Semua API Key & Model Gemini gagal dipanggil!")
 
 def post_ke_blogger(judul, isi_html):
     print("🚀 Mengirim artikel ke Blogspot...")
@@ -104,7 +100,7 @@ def post_ke_blogger(judul, isi_html):
         "kind": "blogger#post",
         "title": judul,
         "content": isi_html,
-        "labels": ["Resep Masakan", "Kuliner Nusantara", "Ide Jualan", "Resep Praktis"],
+        "labels": ["Resep Masakan", "Kuliner Nusantara", "Resep Praktis"],
     }
 
     posts = service.posts()
@@ -119,5 +115,4 @@ if __name__ == "__main__":
     konten_html = resep_data["content_html"]
     
     print(f"📌 Judul buatan Gemini: {judul_artikel}")
-    
     post_ke_blogger(judul_artikel, konten_html)
