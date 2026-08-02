@@ -10,7 +10,7 @@ from google.genai import types
 # ==========================================
 # 1. KONFIGURASI BLOGGER (Ganti ID Blog IT/AI Kamu)
 # ==========================================
-BLOG_ID = "MASUKKAN_BLOG_ID_IT_AI_KAMU" 
+BLOG_ID = "5691370053604799116" 
 
 # ==========================================
 # 2. GENERATE KONTEN PAKAI GEMINI
@@ -37,8 +37,8 @@ TOLONG BUATKAN 1 ARTIKEL TUTORIAL / TIPS IT ATAU AI LENGKAP:
 - Target Pembaca: Pelajar, mahasiswa, pekerja kantoran, pemula tech, atau pegiat digital.
  
 ATURAN GAYA PENULISAN & TONE:
-1. Panggilan Diri: Gunakan "Aku" atau "Gua" secara konsisten.
-2. Panggilan Pembaca: Gunakan "Kamu" atau "Sob" / "Bestie" agar terasa akrab.
+1. Panggilan Diri: Gunakan "Saya" atau "Gua" secara konsisten.
+2. Panggilan Pembaca: Gunakan "Lu" atau "Sob" / "Bro" agar terasa akrab.
 3. Gaya Bahasa: Edukatif, santai, solutif, mudah diikuti step-by-step.
 4. JANGAN gunakan kata-kata kaku khas AI seperti: "Di era digital yang berkembang pesat ini", "Sangat krusial", "Kesimpulannya".
  
