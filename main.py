@@ -50,8 +50,9 @@ def buat_artikel_resep_gemini(topik_resep):
     4. Gunakan bahasa Indonesia yang ramah, hangat, dan menggiurkan khas Food Blogger.
     """
     
+# Menggunakan model gemini-2.0-flash
     response = client.models.generate_content(
-        model='gemini-1.5-flash',
+        model='gemini-2.0-flash',
         contents=prompt
     )
     
