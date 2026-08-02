@@ -1,22 +1,27 @@
 import os
 import json
+import random
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google import genai
 from google.genai import types
 
-# ==========================================
-# 1. KONFIGURASI BLOGGER
-# ==========================================
-BLOG_ID = "9018939718289832902"  # <--- Pastikan ID Blog kamu sudah benar
+BLOG_ID = "9018939718289832902"
 
-# ==========================================
-# 2. GENERATE KONTEN PAKAI GEMINI (PROMPT SUPER)
-# ==========================================
 def buat_artikel_resep_gemini():
     print("🤖 Gemini sedang meracik artikel resep kreatif...")
     
-    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    # Ambil string kunci yang dipisah koma dari GitHub Secrets
+    keys_raw = os.environ.get("GEMINI_API_KEYS", "")
+    
+    # Jika masih pakai nama secret lama GEMINI_API_KEY (single)
+    if not keys_raw:
+        keys_raw = os.environ.get("GEMINI_API_KEY", "")
+        
+    api_keys = [k.strip() for k in keys_raw.split(",") if k.strip()]
+    
+    # Acak urutan API Key supaya beban terbagi merata (Load Balancing)
+    random.shuffle(api_keys)
     
     prompt = """
 Bertindaklah sebagai Chef Rumahan dan Food Blogger kreatif yang ramah, berpengalaman, dan pandai membagikan resep masakan serta minuman harian yang lezat dan praktis.
@@ -54,23 +59,31 @@ FORMAT OUTPUT YANG DIHARAPKAN (JSON):
  "content_html": "<p>Isi artikel lengkap format HTML...</p>"
 }
 """
-    
-    # Pakai model gemini-2.0-flash dan kunci respon ke format JSON
-    response = client.models.generate_content(
-        model='gemini-2.0-flash',
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json"
-        )
-    )
-    
-    # Parse hasil JSON dari Gemini
-    data = json.loads(response.text)
-    return data
 
-# ==========================================
-# 3. POSTING KE BLOGGER VIA API
-# ==========================================
+    # Mencoba API Key satu per satu sampai berhasil
+    for index, key in enumerate(api_keys, 1):
+        try:
+            print(f"🔑 Mencoba API Key ke-{index}...")
+            client = genai.Client(api_key=key)
+            
+            response = client.models.generate_content(
+                model='gemini-2.0-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json"
+                )
+            )
+            
+            data = json.loads(response.text)
+            print("✅ Berhasil generate konten menggunakan Gemini!")
+            return data
+            
+        except Exception as e:
+            print(f"⚠️ API Key ke-{index} gagal/limit: {e}")
+            print("🔄 Mencoba kunci cadangan berikutnya...")
+
+    raise Exception("❌ Semua API Key Gemini habis kuota / error!")
+
 def post_ke_blogger(judul, isi_html):
     print("🚀 Mengirim artikel ke Blogspot...")
     
@@ -99,9 +112,6 @@ def post_ke_blogger(judul, isi_html):
 
     print(f"🎉 BERHASIL! Artikel terbit di: {hasil['url']}")
 
-# ==========================================
-# 4. JALANKAN PROGRAM UTAMA
-# ==========================================
 if __name__ == "__main__":
     resep_data = buat_artikel_resep_gemini()
     
