@@ -6,11 +6,10 @@ from googleapiclient.discovery import build
 from google import genai
 
 # ==========================================
-# 1. KONFIGURASI BOT
+# 1. KONFIGURASI BOT & DAFTAR IDE RESEP
 # ==========================================
-BLOG_ID = "9018939718289832902"  # <--- Pastikan Blog ID kamu benar
+BLOG_ID = "9018939718289832902"  # <--- Pastikan ID Blog kamu sudah benar di sini
 
-# Daftar ide resep khas Nusantara yang akan diproduksi otomatis secara acak
 DAFTAR_RESEP = [
     "Ayam Goreng Lengkuas Gurih Renyah",
     "Rendang Daging Sapi Khas Padang Empuk",
@@ -33,7 +32,7 @@ DAFTAR_RESEP = [
 def buat_artikel_resep_gemini(topik_resep):
     print(f"🤖 Gemini sedang membuat artikel resep: {topik_resep}...")
     
-    # Inisialisasi Client Gemini dari SDK google-genai
+    # Mengambil API Key dari GitHub Secrets
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     
     prompt = f"""
@@ -45,13 +44,12 @@ def buat_artikel_resep_gemini(topik_resep):
     2. Jangan sertakan judul h1 di dalam isi HTML (karena judul dipisah).
     3. Struktur artikel harus rapi, terdiri dari:
        - Paragraf Pembuka yang menggugah selera dan penjelasan singkat masakan.
-       - <h3>Bahan-bahan</h3> dalam bentuk unordered list <ul>.
-       - <h3>Cara Membuat</h3> dalam bentuk ordered list <ol> langkah demi langkah yang detail.
-       - <h3>Tips Rahasia Agar Hasil Maksimal</h3> dalam bentuk bullet points <ul>.
+       - <h3>Bahan-bahan Utama & Bumbu Halus</h3> dalam bentuk unordered list <ul>.
+       - <h3>Langkah-Langkah Memasak</h3> dalam bentuk ordered list <ol> detail.
+       - <h3>Tips Rahasia Anti Gagal</h3> dalam bentuk bullet points <ul>.
     4. Gunakan bahasa Indonesia yang ramah, hangat, dan menggiurkan khas Food Blogger.
     """
     
-    # Menggunakan model gemini-2.5-flash
     response = client.models.generate_content(
         model='gemini-2.5-flash',
         contents=prompt
