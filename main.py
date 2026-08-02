@@ -67,7 +67,7 @@ FORMAT OUTPUT YANG DIHARAPKAN (JSON):
             client = genai.Client(api_key=key)
             
             response = client.models.generate_content(
-                model='gemini-1.5-flash',  # <--- Ganti ke gemini-1.5-flash
+                model='gemini-2.5-flash',  # <-- Ubah ke model stabil terbaru
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json"
