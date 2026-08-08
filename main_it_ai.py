@@ -18,11 +18,8 @@ BLOG_ID = "5691370053604799116"
 # ==========================================
 def clean_and_parse_json(raw_text: str) -> dict:
     """Membersihkan wrapper Markdown dan karakter kontrol tak terlihat yang merusak JSON"""
-    # 1. Hapus markdown codeblock
     cleaned = re.sub(r"```json\s*|\s*```", "", raw_text).strip()
-    # 2. Hapus control character (seperti unescaped line breaks / control chars)
     cleaned = re.sub(r"[\x00-\x1F\x7F-\x9F]", "", cleaned)
-    # 3. Parse JSON dengan strict=False
     return json.loads(cleaned, strict=False)
 
 # ==========================================
@@ -71,34 +68,43 @@ FORMAT OUTPUT (JSON HANYA TANPA PEMBUNGKUS LAIN):
 }
 """
 
-    # DAFTAR MODEL GEMINI TERBARU & TERSEDIA
+    # Model resmi yang valid di API Gemini
     candidate_models = [
         "gemini-2.0-flash",
-        "gemini-1.5-flash-latest",
-        "gemini-2.0-flash-lite"
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash"
     ]
 
     for index, key in enumerate(api_keys, 1):
         for model_name in candidate_models:
-            try:
-                client = genai.Client(api_key=key)
-                
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        response_mime_type="application/json",
-                        temperature=0.3
+            # Mencoba max 2x untuk menangani Rate Limit (429)
+            for attempt in range(2):
+                try:
+                    client = genai.Client(api_key=key)
+                    
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=prompt,
+                        config=types.GenerateContentConfig(
+                            response_mime_type="application/json",
+                            temperature=0.3
+                        )
                     )
-                )
-                
-                data = clean_and_parse_json(response.text)
-                print(f"✅ Artikel IT/AI berhasil dibuat dengan model [{model_name}]!")
-                return data
-                
-            except Exception as e:
-                print(f"⚠️ Kunci ke-{index} ({model_name}) limit/gagal: {e}")
-                time.sleep(2)
+                    
+                    data = clean_and_parse_json(response.text)
+                    print(f"✅ Artikel IT/AI berhasil dibuat dengan model [{model_name}]!")
+                    return data
+                    
+                except Exception as e:
+                    err_msg = str(e)
+                    print(f"⚠️ Kunci ke-{index} ({model_name}) percobaan {attempt+1} gagal: {err_msg}")
+                    
+                    # Jika kena Rate Limit / Quota Exhausted, beri jeda sebelum coba lagi
+                    if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+                        print("⏳ Terkena Rate Limit, menunggu 15 detik...")
+                        time.sleep(15)
+                    else:
+                        break # Jika error tipe lain (seperti 404), langsung ganti model
 
     raise Exception("❌ Semua API Key & Model Gemini gagal dipanggil!")
 
