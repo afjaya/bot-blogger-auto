@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import random
 import time
 from google.oauth2.credentials import Credentials
@@ -8,9 +9,21 @@ from google import genai
 from google.genai import types
 
 # ==========================================
-# 1. KONFIGURASI BLOGGER (Ganti ID Blog IT/AI Kamu)
+# 1. KONFIGURASI BLOGGER (Blog IT/AI)
 # ==========================================
 BLOG_ID = "5691370053604799116" 
+
+# ==========================================
+# HELPER: CLEAN & PARSE JSON FROM GEMINI TEXT
+# ==========================================
+def clean_and_parse_json(raw_text: str) -> dict:
+    """Membersihkan wrapper Markdown dan karakter kontrol tak terlihat yang merusak JSON"""
+    # 1. Hapus markdown codeblock
+    cleaned = re.sub(r"```json\s*|\s*```", "", raw_text).strip()
+    # 2. Hapus control character (seperti unescaped line breaks / control chars)
+    cleaned = re.sub(r"[\x00-\x1F\x7F-\x9F]", "", cleaned)
+    # 3. Parse JSON dengan strict=False
+    return json.loads(cleaned, strict=False)
 
 # ==========================================
 # 2. GENERATE KONTEN PAKAI GEMINI
@@ -50,7 +63,7 @@ ATURAN JUDUL & SEO:
 ATURAN STRUKTUR & FORMAT HTML:
 Gunakan tag <h2>, <h3>, <p>, <ul>, <ol>, <li>, <code> untuk sintaks/perintah (jika ada), dan <blockquote> untuk catatan penting.
  
-FORMAT OUTPUT (JSON):
+FORMAT OUTPUT (JSON HANYA TANPA PEMBUNGKUS LAIN):
 {
  "title": "Judul Artikel Menarik & To The Point",
  "meta_description": "Deskripsi singkat artikel untuk SEO",
@@ -58,7 +71,12 @@ FORMAT OUTPUT (JSON):
 }
 """
 
-    candidate_models = ["gemini-2.5-flash", "gemini-1.5-flash"]
+    # DAFTAR MODEL GEMINI TERBARU & TERSEDIA
+    candidate_models = [
+        "gemini-2.0-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-2.0-flash-lite"
+    ]
 
     for index, key in enumerate(api_keys, 1):
         for model_name in candidate_models:
@@ -69,11 +87,12 @@ FORMAT OUTPUT (JSON):
                     model=model_name,
                     contents=prompt,
                     config=types.GenerateContentConfig(
-                        response_mime_type="application/json"
+                        response_mime_type="application/json",
+                        temperature=0.3
                     )
                 )
                 
-                data = json.loads(response.text)
+                data = clean_and_parse_json(response.text)
                 print(f"✅ Artikel IT/AI berhasil dibuat dengan model [{model_name}]!")
                 return data
                 
