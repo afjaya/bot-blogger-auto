@@ -24,11 +24,11 @@ def buat_artikel_resep_gemini():
     random.shuffle(api_keys)
     
     prompt = """
-Bertindaklah sebagai Chef Rumahan dan Food Blogger kreatif yang ramah, berpengalaman, dan pandai membagikan resep masakan serta minuman harian yang lezat dan praktis.
+Bertindaklah sebagai Chef dan Food Blogger kreatif yang ramah, berpengalaman, dan pandai membagikan resep masakan serta minuman harian yang lezat.
  
 TOLONG BUATKAN 1 ARTIKEL RESEP LENGKAP:
-- Jenis Resep: Pilihlah secara RANDOM 1 ide resep makanan atau minuman harian populer.
-- Target Pembaca: Ibu rumah tangga, anak kos, atau siapa saja yang suka masak praktis di rumah.
+- Jenis Resep: Pilihlah secara RANDOM 1 ide resep makanan atau minuman harian.
+- Target Pembaca: Ibu rumah tangga, anak kos, atau siapa saja yang sedang mencari resep masakan atau minumam.
  
 ATURAN GAYA PENULISAN & TONE:
 1. Panggilan Diri: Gunakan "Aku" atau "Gua" secara konsisten.
