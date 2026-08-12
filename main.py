@@ -6,37 +6,30 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google import genai
 from google.genai import types
-import google.generativeai as genai
 
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+BLOG_ID = "9018939718289832902"  # ID Blog Kamu
 
-# Menggunakan model gemini-2.0-flash
-model = genai.GenerativeModel("gemini-2.0-flash")
-response = model.generate_content("Buatkan resep makanan kreatif...")
-print(response.text)
-
-BLOG_ID = "9018939718289832902"  # <--- Pastikan ID Blog kamu benar
 
 def buat_artikel_resep_gemini():
     print("🤖 Gemini sedang meracik artikel resep kreatif...")
-    
+
     keys_raw = os.environ.get("GEMINI_API_KEYS", "")
     if not keys_raw:
         keys_raw = os.environ.get("GEMINI_API_KEY", "")
-        
+
     api_keys = [k.strip() for k in keys_raw.split(",") if k.strip()]
-    
+
     if not api_keys:
         raise Exception("❌ API Key Gemini tidak ditemukan di Secrets!")
 
     random.shuffle(api_keys)
-    
+
     prompt = """
 Bertindaklah sebagai Chef dan Food Blogger kreatif yang ramah, berpengalaman, dan pandai membagikan resep masakan serta minuman harian yang lezat.
  
 TOLONG BUATKAN 1 ARTIKEL RESEP LENGKAP:
 - Jenis Resep: Pilihlah secara RANDOM 1 ide resep makanan atau minuman harian.
-- Target Pembaca: Ibu rumah tangga, anak kos, atau siapa saja yang sedang mencari resep masakan atau minumam.
+- Target Pembaca: Ibu rumah tangga, anak kos, atau siapa saja yang sedang mencari resep masakan atau minuman.
  
 ATURAN GAYA PENULISAN & TONE:
 1. Panggilan Diri: Gunakan "Aku" atau "Gua" secara konsisten.
@@ -61,37 +54,42 @@ FORMAT OUTPUT (MUST BE VALID JSON):
 }
 """
 
-    # Daftar nama model yang akan dicoba secara berurutan
-    candidate_models = ["gemini-2.5-flash", "gemini-1.5-flash","gemini-2.0-flash","gemini-2.0-flash-lite",]
+    # Model aktif terbaru (diurutkan dari yang paling direkomendasikan)
+    candidate_models = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro"]
 
     for index, key in enumerate(api_keys, 1):
         for model_name in candidate_models:
             try:
                 print(f"🔑 Mencoba API Key ke-{index} dengan model [{model_name}]...")
                 client = genai.Client(api_key=key)
-                
+
                 response = client.models.generate_content(
                     model=model_name,
                     contents=prompt,
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json"
-                    )
+                    ),
                 )
-                
+
                 data = json.loads(response.text)
                 print(f"✅ Berhasil generate konten menggunakan model {model_name}!")
                 return data
-                
+
             except Exception as e:
                 print(f"⚠️ API Key ke-{index} ({model_name}) gagal: {e}")
-                time.sleep(2) # Beri jeda 2 detik sebelum mencoba lagi
+                time.sleep(2)  # Jeda 2 detik sebelum mencoba model berikutnya
 
     raise Exception("❌ Semua API Key & Model Gemini gagal dipanggil!")
 
+
 def post_ke_blogger(judul, isi_html):
     print("🚀 Mengirim artikel ke Blogspot...")
-    
-    token_info = json.loads(os.environ["BLOGGER_TOKEN"])
+
+    token_raw = os.environ.get("BLOGGER_TOKEN")
+    if not token_raw:
+        raise Exception("❌ Secret BLOGGER_TOKEN tidak ditemukan!")
+
+    token_info = json.loads(token_raw)
 
     creds = Credentials(
         token=token_info["token"],
@@ -116,11 +114,12 @@ def post_ke_blogger(judul, isi_html):
 
     print(f"🎉 BERHASIL! Artikel terbit di: {hasil['url']}")
 
+
 if __name__ == "__main__":
     resep_data = buat_artikel_resep_gemini()
-    
+
     judul_artikel = resep_data["title"]
     konten_html = resep_data["content_html"]
-    
+
     print(f"📌 Judul buatan Gemini: {judul_artikel}")
     post_ke_blogger(judul_artikel, konten_html)
