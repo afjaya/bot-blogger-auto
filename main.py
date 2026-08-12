@@ -6,6 +6,15 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google import genai
 from google.genai import types
+import google.generativeai as genai
+import os
+
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+
+# Menggunakan model gemini-2.0-flash
+model = genai.GenerativeModel("gemini-2.0-flash")
+response = model.generate_content("Buatkan resep makanan kreatif...")
+print(response.text)
 
 BLOG_ID = "9018939718289832902"  # <--- Pastikan ID Blog kamu benar
 
