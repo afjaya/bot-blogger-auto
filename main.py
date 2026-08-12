@@ -54,8 +54,8 @@ FORMAT OUTPUT (MUST BE VALID JSON):
 }
 """
 
-    # Model aktif terbaru (diurutkan dari yang paling direkomendasikan)
-    candidate_models = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro"]
+    # Model generasi baru untuk Interactions API
+    candidate_models = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-flash-latest"]
 
     for index, key in enumerate(api_keys, 1):
         for model_name in candidate_models:
@@ -77,7 +77,7 @@ FORMAT OUTPUT (MUST BE VALID JSON):
 
             except Exception as e:
                 print(f"⚠️ API Key ke-{index} ({model_name}) gagal: {e}")
-                time.sleep(2)  # Jeda 2 detik sebelum mencoba model berikutnya
+                time.sleep(2)
 
     raise Exception("❌ Semua API Key & Model Gemini gagal dipanggil!")
 
