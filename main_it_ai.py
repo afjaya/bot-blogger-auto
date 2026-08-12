@@ -1,17 +1,18 @@
-import os
 import json
-import re
+import os
 import random
+import re
 import time
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
 from google import genai
 from google.genai import types
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 
 # ==========================================
 # 1. KONFIGURASI BLOGGER (Blog IT/AI)
 # ==========================================
-BLOG_ID = "5691370053604799116" 
+BLOG_ID = "5691370053604799116"
+
 
 # ==========================================
 # HELPER: CLEAN & PARSE JSON FROM GEMINI TEXT
@@ -22,23 +23,24 @@ def clean_and_parse_json(raw_text: str) -> dict:
     cleaned = re.sub(r"[\x00-\x1F\x7F-\x9F]", "", cleaned)
     return json.loads(cleaned, strict=False)
 
+
 # ==========================================
 # 2. GENERATE KONTEN PAKAI GEMINI
 # ==========================================
 def buat_artikel_it_ai_gemini():
-    print("🤖 Gemini sedang meracik artikel Tips IT & AI...")
-    
+    print("🤖 Gemini sedang meracik artikel IT/AI kreatif...")
+
     keys_raw = os.environ.get("GEMINI_API_KEYS", "")
     if not keys_raw:
         keys_raw = os.environ.get("GEMINI_API_KEY", "")
-        
+
     api_keys = [k.strip() for k in keys_raw.split(",") if k.strip()]
-    
+
     if not api_keys:
         raise Exception("❌ API Key Gemini tidak ditemukan di Secrets!")
 
     random.shuffle(api_keys)
-    
+
     prompt = """
 Bertindaklah sebagai IT Specialist, Prompt Engineer, dan Tech Blogger berpengalaman yang ramah, komunikatif, dan pandai menjelaskan hal teknis secara mudah dipahami.
  
@@ -68,53 +70,59 @@ FORMAT OUTPUT (JSON HANYA TANPA PEMBUNGKUS LAIN):
 }
 """
 
-    # Model resmi yang valid di API Gemini
     candidate_models = [
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-1.5-flash"
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+        "gemini-flash-latest",
     ]
 
     for index, key in enumerate(api_keys, 1):
         for model_name in candidate_models:
-            # Mencoba max 2x untuk menangani Rate Limit (429)
-            for attempt in range(2):
-                try:
-                    client = genai.Client(api_key=key)
-                    
-                    response = client.models.generate_content(
-                        model=model_name,
-                        contents=prompt,
-                        config=types.GenerateContentConfig(
-                            response_mime_type="application/json",
-                            temperature=0.3
-                        )
-                    )
-                    
-                    data = clean_and_parse_json(response.text)
-                    print(f"✅ Artikel IT/AI berhasil dibuat dengan model [{model_name}]!")
-                    return data
-                    
-                except Exception as e:
-                    err_msg = str(e)
-                    print(f"⚠️ Kunci ke-{index} ({model_name}) percobaan {attempt+1} gagal: {err_msg}")
-                    
-                    # Jika kena Rate Limit / Quota Exhausted, beri jeda sebelum coba lagi
-                    if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
-                        print("⏳ Terkena Rate Limit, menunggu 15 detik...")
-                        time.sleep(15)
-                    else:
-                        break # Jika error tipe lain (seperti 404), langsung ganti model
+            try:
+                print(
+                    f"🔑 Mencoba API Key ke-{index} dengan model [{model_name}]..."
+                )
+                client = genai.Client(api_key=key)
+
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json"
+                    ),
+                )
+
+                data = clean_and_parse_json(response.text)
+                print(
+                    f"✅ Artikel IT/AI berhasil dibuat dengan model [{model_name}]!"
+                )
+                return data
+
+            except Exception as e:
+                err_msg = str(e)
+                print(
+                    f"⚠️ Kunci ke-{index} dengan model ({model_name}) gagal: {err_msg}"
+                )
+
+                # Jika terkena Rate Limit / Quota Exhausted, beri jeda sebelum coba lagi
+                if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+                    print("⏳ Terkena Rate Limit, menunggu 15 detik...")
+                    time.sleep(15)
 
     raise Exception("❌ Semua API Key & Model Gemini gagal dipanggil!")
+
 
 # ==========================================
 # 3. POSTING KE BLOGGER VIA API
 # ==========================================
 def post_ke_blogger(judul, isi_html):
     print("🚀 Mengirim artikel ke Blogspot IT/AI...")
-    
-    token_info = json.loads(os.environ["BLOGGER_TOKEN"])
+
+    token_raw = os.environ.get("BLOGGER_TOKEN")
+    if not token_raw:
+        raise Exception("❌ Secret BLOGGER_TOKEN tidak ditemukan!")
+
+    token_info = json.loads(token_raw)
 
     creds = Credentials(
         token=token_info["token"],
@@ -139,11 +147,12 @@ def post_ke_blogger(judul, isi_html):
 
     print(f"🎉 BERHASIL! Artikel terbit di: {hasil['url']}")
 
+
 if __name__ == "__main__":
     data_artikel = buat_artikel_it_ai_gemini()
-    
+
     judul_artikel = data_artikel["title"]
     konten_html = data_artikel["content_html"]
-    
+
     print(f"📌 Judul: {judul_artikel}")
     post_ke_blogger(judul_artikel, konten_html)
