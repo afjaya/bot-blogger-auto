@@ -54,7 +54,7 @@ FORMAT OUTPUT (MUST BE VALID JSON):
 """
 
     # Daftar nama model yang akan dicoba secara berurutan
-    candidate_models = ["gemini-2.5-flash", "gemini-1.5-flash"]
+    candidate_models = ["gemini-2.5-flash", "gemini-1.5-flash","gemini-2.0-flash","gemini-2.0-flash-lite",]
 
     for index, key in enumerate(api_keys, 1):
         for model_name in candidate_models:
