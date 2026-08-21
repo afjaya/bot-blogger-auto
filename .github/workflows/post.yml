@@ -3,7 +3,7 @@ name: Bot Auto Post Blogger
 on:
   schedule:
     # Berjalan otomatis setiap jam 07:00 WIB (00:00 UTC)
-    - cron: "0 0 * * *"
+    - cron: "0 0,10 * * *"
   workflow_dispatch: # Supaya bisa dijalankan manual lewat tombol di GitHub Actions
 
 jobs:
