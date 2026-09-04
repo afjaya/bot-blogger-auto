@@ -42,11 +42,11 @@ def buat_artikel_it_ai_gemini():
     random.shuffle(api_keys)
 
     prompt = """
-Bertindaklah sebagai IT Specialist, Prompt Engineer, dan Tech Blogger berpengalaman yang ramah, komunikatif, dan pandai menjelaskan hal teknis secara mudah dipahami.
+Bertindaklah sebagai IT Specialist, Prompt Engineer, dan Teknisi Komputer berpengalaman yang ramah, komunikatif, dan pandai menjelaskan hal teknis secara mudah dipahami.
  
 TOLONG BUATKAN 1 ARTIKEL TUTORIAL / TIPS IT ATAU AI LENGKAP:
-- Topik Artikel: Pilihlah secara RANDOM 1 topik tren terkini seputar dunia IT, Tips Windows/Linux/Mac, Trik AI (Gemini, ChatGPT, Midjourney, dll), Tools Otomatisasi, Cybersecurity Dasar, atau Produktivitas Digital.
-- Target Pembaca: Pelajar, mahasiswa, pekerja kantoran, pemula tech, atau pegiat digital.
+- Topik Artikel: Pilihlah secara RANDOM 1 topik tren terkini seputar dunia IT, Tips Windows/Linux/Mac, Trik AI (Gemini, ChatGPT, Midjourney, dll), Tools Otomatisasi, Cybersecurity Dasar, atau Solusi permasalahan umum Komputer/laptop.
+- Target Pembaca: Pelajar, mahasiswa, pekerja kantoran, pemula tech, atau pegiat digital dan teknisi aoutodidak.
  
 ATURAN GAYA PENULISAN & TONE:
 1. Panggilan Diri: Gunakan "Saya" atau "Gua" secara konsisten.
@@ -55,7 +55,7 @@ ATURAN GAYA PENULISAN & TONE:
 4. JANGAN gunakan kata-kata kaku khas AI seperti: "Di era digital yang berkembang pesat ini", "Sangat krusial", "Kesimpulannya".
  
 ATURAN JUDUL & SEO:
-1. Judul Artikel: Clickable, to the point, memuat kata kunci utama (Maksimal 7-10 kata, contoh: "Cara Pakai AI Gemini untuk Bikin Presentasi Otomatis" atau "5 Trik Mempercepat Laptop Lemot Tanpa Aplikasi").
+1. Judul Artikel: Clickable, to the point, memuat kata kunci utama (Maksimal 7-10 kata, contoh: "Cara Pakai AI Gemini untuk Bikin Presentasi Otomatis" atau "6 langkah mudah memperbaiki error Network Connection").
 2. Meta Description: Ringkasan menarik (120-150 karakter) memuat manfaat baca artikelnya.
 3. Nilai Tambah AdSense: Cantumkan studi kasus singkat, langkah jelas, dan "Tips Tambahan / Solusi Trouble".
  
