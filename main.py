@@ -25,10 +25,11 @@ def buat_artikel_resep_gemini():
     random.shuffle(api_keys)
 
     prompt = """
-Bertindaklah sebagai Chef dan Food Blogger kreatif yang ramah, berpengalaman, dan pandai membagikan resep masakan serta minuman harian yang lezat.
+Bertindaklah sebagai Chef dan Food Blogger kreatif yang ramah, berpengalaman, dan pandai membagikan resep masakan serta minuman yang lezat.
  
-TOLONG BUATKAN 1 ARTIKEL RESEP LENGKAP:
-- Jenis Resep: Pilihlah secara RANDOM 1 ide resep makanan atau minuman harian.
+TOLONG BUATKAN 1 ARTIKEL RESEP LENGKAP atau Tips Dapur Sehat :
+- Jenis Resep: Pilihlah secara RANDOM 1 ide resep makanan, minuman, Dessert populer.
+- Tips Dapur Sehat: Berfokus pada memberi saran yang bermanfaat bagi pembaca meliputi, kebersihan dapur, nilai gizi, penataan dapur ideal dan psikologi seorang juru masak.
 - Target Pembaca: Ibu rumah tangga, anak kos, atau siapa saja yang sedang mencari resep masakan atau minuman.
  
 ATURAN GAYA PENULISAN & TONE:
@@ -40,14 +41,14 @@ ATURAN GAYA PENULISAN & TONE:
 ATURAN JUDUL & SEO:
 1. Judul Artikel: Singkat, padat, menarik (Maksimal 6-8 kata).
 2. Meta Description: Ringkasan menarik (120-150 karakter).
-3. Poin Plus: Cantumkan estimasi waktu masak, porsi, dan "Tips Rahasia Anti-Gagal".
+3. Poin Plus: Cantumkan estimasi waktu masak, porsi, dan "Tips Rahasia Anti-Gagal" untuk resep masakan. dan tidak perli Poin Plus jika artikel tentang Tips Dapur.
  
 FORMAT HTML:
 Gunakan tag <h2>, <p>, <ul>, <ol>, <li>, <blockquote>.
  
 FORMAT OUTPUT (MUST BE VALID JSON):
 {
- "recipe_name": "Nama Resep",
+ "recipe_name": "Nama Resep", "judul Tips"
  "title": "Judul Artikel",
  "meta_description": "Deskripsi singkat",
  "content_html": "<p>Isi artikel format HTML...</p>"
